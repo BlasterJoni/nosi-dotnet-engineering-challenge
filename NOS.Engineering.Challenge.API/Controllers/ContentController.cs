@@ -2,6 +2,7 @@ using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using NOS.Engineering.Challenge.API.Models;
 using NOS.Engineering.Challenge.Managers;
+using NOS.Engineering.Challenge.Models;
 
 namespace NOS.Engineering.Challenge.API.Controllers;
 
@@ -68,20 +69,76 @@ public class ContentController : Controller
     }
     
     [HttpPost("{id}/genre")]
-    public Task<IActionResult> AddGenres(
+    public async Task<IActionResult> AddGenres(
         Guid id,
         [FromBody] IEnumerable<string> genre
     )
     {
-        return Task.FromResult<IActionResult>(StatusCode((int)HttpStatusCode.NotImplemented));
+        var currentContent = await _manager.GetContent(id).ConfigureAwait(false);
+        
+        if (currentContent == null) // if content not found return 404
+            return NotFound();
+        
+        var currentGenres = currentContent.GenreList.ToHashSet(); // using a set to ensure no duplicates, duplicates get ignored
+        currentGenres.UnionWith(genre);
+        
+        var updatedContent = await _manager.UpdateContent(id, new ContentDto(
+            currentContent.Title,
+            currentContent.SubTitle,
+            currentContent.Description,
+            currentContent.ImageUrl,
+            currentContent.Duration,
+            currentContent.StartTime,
+            currentContent.EndTime,
+            currentGenres)
+        ).ConfigureAwait(false);
+        
+        if (updatedContent == null) // if update failed return 500
+            return Problem();
+        
+        // if unchanged return 304
+        if (updatedContent.GenreList.Count() == currentContent.GenreList.Count())
+            return StatusCode((int)HttpStatusCode.NotModified);
+        
+        return Ok(updatedContent);
     }
     
     [HttpDelete("{id}/genre")]
-    public Task<IActionResult> RemoveGenres(
+    public async Task<IActionResult> RemoveGenres(
         Guid id,
         [FromBody] IEnumerable<string> genre
     )
     {
-        return Task.FromResult<IActionResult>(StatusCode((int)HttpStatusCode.NotImplemented));
+        var currentContent = await _manager.GetContent(id).ConfigureAwait(false);
+        
+        if (currentContent == null) // if content not found return 404
+            return NotFound();
+
+        var currentGenres = currentContent.GenreList;
+        var genreToRemove = genre.ToList();
+        var updatedGenres = currentGenres.Except(genreToRemove).ToList(); // removing genres, when removing genres that aren't there those are ignored
+        
+        if (!updatedGenres.Any() && genreToRemove.Any()) // if removed all genres return 304, can't remove all genres, the ContentMapper requires at least one genre
+            return StatusCode((int)HttpStatusCode.NotModified);
+        
+        var updatedContent = await _manager.UpdateContent(id, new ContentDto(
+            currentContent.Title,
+            currentContent.SubTitle,
+            currentContent.Description,
+            currentContent.ImageUrl,
+            currentContent.Duration,
+            currentContent.StartTime,
+            currentContent.EndTime,
+            updatedGenres)
+        ).ConfigureAwait(false);
+        
+        if (updatedContent == null) // if update failed return 500
+            return Problem();
+        
+        // if unchanged return 304
+        if (updatedContent.GenreList.Count() == currentContent.GenreList.Count())
+            return StatusCode((int)HttpStatusCode.NotModified);
+        
+        return Ok(updatedContent);
     }
 }
