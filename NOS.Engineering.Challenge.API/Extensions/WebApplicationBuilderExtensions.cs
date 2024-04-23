@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http.Json;
+using Microsoft.Extensions.Logging.Console;
 using Microsoft.OpenApi.Models;
 using NOS.Engineering.Challenge.Database;
 using NOS.Engineering.Challenge.Managers;
@@ -54,7 +55,15 @@ public static class WebApplicationBuilderExtensions
     {
         webApplicationBuilder
             .WebHost
-            .ConfigureLogging(logging => { logging.ClearProviders(); });
+            .ConfigureLogging(logging => { logging.ClearProviders();
+                logging.AddSimpleConsole(
+                    options =>
+                    {
+                        options.SingleLine = true;
+                        options.TimestampFormat = "HH:mm:ss ";
+                        options.ColorBehavior = LoggerColorBehavior.Enabled;
+                    });
+            });
 
         return webApplicationBuilder;
     }
