@@ -130,7 +130,10 @@ public class ContentController : Controller
         }
         
         // if unchanged return 304
-        if (updatedContent.GenreList.Count() == currentContent.GenreList.Count())
+        var firstNotSecond = updatedContent.GenreList.Except(currentContent.GenreList).ToList();
+        var secondNotFirst = currentContent.GenreList.Except(updatedContent.GenreList).ToList();
+        var equal = !firstNotSecond.Any() && !secondNotFirst.Any();
+        if (equal)
         {
             _logger.LogInformation($"POST:/api/v1/content/{id}/genre - StatusCode:304 - no new genres added, content genres unchanged");
             return StatusCode((int)HttpStatusCode.NotModified);
@@ -184,7 +187,10 @@ public class ContentController : Controller
         }
         
         // if unchanged return 304
-        if (updatedContent.GenreList.Count() == currentContent.GenreList.Count())
+        var firstNotSecond = updatedContent.GenreList.Except(currentContent.GenreList).ToList();
+        var secondNotFirst = currentContent.GenreList.Except(updatedContent.GenreList).ToList();
+        var equal = !firstNotSecond.Any() && !secondNotFirst.Any();
+        if (equal)
         {
             _logger.LogInformation($"DELETE:/api/v1/content/{id}/genre - StatusCode:304 - no genres removed, content genres unchanged");
             return StatusCode((int)HttpStatusCode.NotModified);
