@@ -33,6 +33,29 @@ public class ContentController : Controller
         //_logger.LogInformation($"GET:/api/v1/content - StatusCode:200 - returned {contents.Count()} contents");
         return Ok(contents);
     }
+    
+    [HttpGet("filtered")]
+    public async Task<IActionResult> GetFilteredContents(
+        [FromQuery] string? genre, 
+        [FromQuery] string? title
+    )
+    {
+        var contents = await _manager.GetManyContents().ConfigureAwait(false);
+        contents = contents.Where(c => 
+            (string.IsNullOrEmpty(genre) || c.GenreList.Contains(genre)) &&
+            (string.IsNullOrEmpty(title) || c.Title.ToLower().Contains(title.ToLower()))
+        );
+        contents = contents.ToList();
+        
+        if (!contents.Any())
+        {
+            _logger.LogWarning($"GET:/api/v1/content/filtered - StatusCode:404 - no contents found with genre:{genre} and/or title:{title}");
+            return NotFound();
+        }
+        
+        //_logger.LogInformation($"GET:/api/v1/content/filtered - StatusCode:200 - returned {contents.Count()} contents with genre:{genre} and/or title:{title}");
+        return Ok(contents);
+    }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetContent(Guid id)
