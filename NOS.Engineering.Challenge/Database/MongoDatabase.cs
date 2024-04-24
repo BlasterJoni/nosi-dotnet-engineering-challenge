@@ -37,7 +37,7 @@ public class MongoDatabase<TOut, TIn> : IDatabase<TOut, TIn>
         }
     }
 
-    public Task<TOut?> Create(TIn item)
+    public async Task<TOut?> Create(TIn item)
     {
         var id = Guid.NewGuid();
         var createdItem = _mapper.Map(id, item);
@@ -48,55 +48,55 @@ public class MongoDatabase<TOut, TIn> : IDatabase<TOut, TIn>
         }
         var doc = createdItem.ToBsonDocument();
         doc["_id"] = id.ToString();
-        _moviesCollection.InsertOne(doc);
-        return Task.FromResult(createdItem);
+        await _moviesCollection.InsertOneAsync(doc);
+        return createdItem;
     }
 
-    public Task<TOut?> Read(Guid id)
+    public async Task<TOut?> Read(Guid id)
     {
-        var doc = _moviesCollection.Find(d => d["_id"] == id.ToString()).FirstOrDefault();
+        var doc = await _moviesCollection.Find(d => d["_id"] == id.ToString()).FirstOrDefaultAsync();
         if (doc == null)
         {
-            return Task.FromResult<TOut?>(default);
+            return default;
         }
         var item = BsonSerializer.Deserialize<TOut?>(doc);
-        return Task.FromResult(item);
+        return item;
     }
 
-    public Task<IEnumerable<TOut?>> ReadAll()
+    public async Task<IEnumerable<TOut?>> ReadAll()
     {
-        var docs = _moviesCollection.Find(_ => true).ToList();
+        var docs = await _moviesCollection.Find(_ => true).ToListAsync();
         var items = new List<TOut?>();
         foreach (var doc in docs)
         {
             items.Add(BsonSerializer.Deserialize<TOut?>(doc));
         }
-        return Task.FromResult(items.AsEnumerable());
+        return items.AsEnumerable();
     }
 
-    public Task<TOut?> Update(Guid id, TIn item)
+    public async Task<TOut?> Update(Guid id, TIn item)
     {
-        var doc = _moviesCollection.Find(d => d["_id"] == id.ToString()).FirstOrDefault();
+        var doc = await _moviesCollection.Find(d => d["_id"] == id.ToString()).FirstOrDefaultAsync();
         if (doc == null)
         {
-            return Task.FromResult<TOut?>(default);
+            return default;
         }
         var dbItem = BsonSerializer.Deserialize<TOut?>(doc);
         var updatedItem = _mapper.Patch(dbItem, item);
         var updatedDoc = updatedItem.ToBsonDocument();
         updatedDoc["_id"] = id.ToString();
-        _moviesCollection.ReplaceOne(d => d["_id"] == id.ToString(), updatedDoc);
-        return Task.FromResult(updatedItem);
+        await _moviesCollection.ReplaceOneAsync(d => d["_id"] == id.ToString(), updatedDoc);
+        return updatedItem;
     }
 
-    public Task<Guid> Delete(Guid id)
+    public async Task<Guid> Delete(Guid id)
     {
-        var exists = _moviesCollection.Find(d => d["_id"] == id.ToString()).Any();
+        var exists = await _moviesCollection.Find(d => d["_id"] == id.ToString()).AnyAsync();
         if (!exists)
         {
-            return Task.FromResult(Guid.Empty);
+            return Guid.Empty;
         }
-        _moviesCollection.DeleteOne(d => d["_id"] == id.ToString());
-        return Task.FromResult(id);
+        await _moviesCollection.DeleteOneAsync(d => d["_id"] == id.ToString());
+        return id;
     }
 }
