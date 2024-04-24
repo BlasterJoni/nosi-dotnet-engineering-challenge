@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http.Json;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging.Console;
 using Microsoft.OpenApi.Models;
 using NOS.Engineering.Challenge.Database;
@@ -36,7 +37,8 @@ public static class WebApplicationBuilderExtensions
 
     private static IServiceCollection RegisterSlowDatabase(this IServiceCollection services)
     {
-        services.AddSingleton<IDatabase<Content, ContentDto>,MongoDatabase<Content, ContentDto>>();
+        services.AddSingleton<IDatabase<Content, ContentDto>,SlowDatabase<Content, ContentDto>>();
+        services.AddMemoryCache();
         services.AddSingleton<IMapper<Content, ContentDto>, ContentMapper>();
         services.AddSingleton<IMockData<Content>, MockData>();
 
