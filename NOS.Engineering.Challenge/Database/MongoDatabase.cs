@@ -5,6 +5,13 @@ using MongoDB.Bson.Serialization;
 
 namespace NOS.Engineering.Challenge.Database;
 
+/*
+ * Task 3
+ * The simplicity of the data in this challenge and
+ * the absence of relationships that would benefit from a relational database,
+ * led me to instead choose a NoSQL DB as MongoDB as the example of new database.
+ */
+
 public class MongoDatabase<TOut, TIn> : IDatabase<TOut, TIn>
 {
     

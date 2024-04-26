@@ -7,6 +7,18 @@ namespace NOS.Engineering.Challenge.Managers;
 public class ContentsManager : IContentsManager
 {
     private readonly IDatabase<Content?, ContentDto> _database;
+    
+    /*
+     * Task 4
+     * Given there is only one instance of the server running,
+     * I choose to use a cache in memory to store previously accessed contents
+     * to speed lookups.
+     * On a more complex deployment, with multiple instances of the server,
+     * an external cache, like with Redis for example, would be my choice.
+     * (or Valkey, the new opensource fork of Redis, since Redis got took over by a
+     * company and currently it's licensing and relationship with
+     * the community seems to be a mess lol...)
+     */
     private readonly IMemoryCache _memoryCache;
 
     public ContentsManager(IDatabase<Content?, ContentDto> database, IMemoryCache memoryCache)

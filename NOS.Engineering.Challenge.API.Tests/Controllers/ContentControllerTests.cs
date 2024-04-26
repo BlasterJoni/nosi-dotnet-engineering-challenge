@@ -8,6 +8,14 @@ using Xunit.Abstractions;
 
 namespace NOS.Engineering.Challenge.API.Tests.Controllers;
 
+/*
+ * Task 5
+ * I didn't know how to do tests in C#,
+ * so I took this opportunity to learn about them with the help of copilot ;)
+ * and made a few tests for the endpoints I created in the previous tasks,
+ * while making sure to test the different possible outcomes of the methods.
+*/
+
 public class ContentControllerTests
 {
     private readonly ITestOutputHelper _testOutputHelper;
